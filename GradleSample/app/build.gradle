@@ -4,6 +4,7 @@
 //}
 
 apply plugin: 'com.android.application'
+apply plugin: CustomPluginA
 
 // 为方便控制台显示内容，可以注释该引用
 apply from: 'project_task_examples.gradle'
@@ -12,17 +13,30 @@ android {
     compileSdkVersion 28
     defaultConfig {
         applicationId "com.zjx.happy.learning"
-        minSdkVersion 21
+        minSdkVersion 23
         targetSdkVersion 28
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+
+//        javaCompileOptions {
+//            annotationProcessorOptions {
+//                includeCompileClasspath false
+//            }
+//        }
     }
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
+    }
+    compileOptions {
+        sourceCompatibility 1.8
+        targetCompatibility 1.8
+    }
+    packagingOptions {
+        exclude 'META-INF/DEPENDENCIES'
     }
 }
 
@@ -33,6 +47,11 @@ dependencies {
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
+    implementation 'com.android.tools.build:gradle:3.3.1'
+
+
+    implementation "com.google.auto.value:auto-value:1.4.1"
+    annotationProcessor "com.google.auto.value:auto-value:1.4.1"
 }
 
 /**------------------- 自定义插件：直接在脚本文件中定义，其局限性较大 -------------------*/
@@ -50,31 +69,21 @@ class CustomPluginA implements Plugin<Project> {
 
     @Override
     void apply(Project target) {
-
         // 将Extension注册给Plugin
         def extension = target.extensions.create('customA', CustomExtensionA)
-
-        // 定义一个任务
-        target.task('CustomPluginTaskA') {
-            doFirst {
-                println 'this is custom plugin A task A'
-            }
-
-            doLast {
-                // 使用Extension传入的参数
-                println extension.message
-                println extension.greeter
-            }
-        }
+        //...
     }
 }
+//它表示所有的模块都已经配置完了，可以准备执行task了
+project.afterEvaluate {
+    println 'n.........你好'
+    // 使用Extension传入的参数,project.extensions.customA.message简写可以省略extensions
+    println project.customA.message
+}
 
-// 使用插件CustomPluginA，这里必须使用插件类名，而不是字符串
-// 使用gradlew -q CustomPluginTaskA查看插件是否生效
-apply plugin: CustomPluginA
 
 // 配置CustomExtensionA，需要使用注册名，这里是customA
-customA.message = 'Hi from PluginA'
+customA.message = 'Hi from PluginA，你好'
 
 /**---------------- 自定义插件：引用在buildSrc模块中定义的插件，使用插件类名的全限定名 ----------------*/
 // 使用gradlew -q CustomPluginTaskB查看插件是否生效
@@ -86,3 +95,8 @@ apply plugin: 'com.happy.custompluginc'
 
 /**---------------- 自定义插件：利用Transform向MainActivity中插入代码 ----------------*/
 apply plugin: 'com.happy.customplugin.transform'
+
+
+customA {
+    message '你好呀'
+}

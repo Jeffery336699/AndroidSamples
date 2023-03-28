@@ -1,1 +1,4 @@
-include ':app', ':buildSrc', ':customPlugin', ':transformPlugin'
+include ':buildSrc', ':customPlugin', ':transformPlugin'
+include ':anothermodule'
+include ':mylibrary'
+include ':app'
